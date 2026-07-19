@@ -1,9 +1,10 @@
 # from django.http import JsonResponse
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .models import Author, Category, Books, Borrow, BorrowItem
+#from rest_framework.decorators import api_view
+from .models import  Books
 from .serializers import BookSerializers
-from rest_framework.views import APIView
+from rest_framework. generics  import (ListCreateAPIView, RetrieveUpdateDestroyAPIView)
+
 # def Check_available(request):
 #     books = Books.objects.all()
 #     borrow = Borrow.objects.all()
@@ -50,61 +51,68 @@ from rest_framework.views import APIView
 # def Book_detail(request):
 #     if request.method == 'GET':
 #         books = Books.objects.all()
-#         serializer = BookSerializers(books, many=True)
+#         serializer = BookSerializers(5, many=True)
 
 #         return Response(serializer.data)
-class BookList(APIView):
-    def get(self, request):
-        books = Books.objects.all()
-        serializer = BookSerializers(books, many=True)
-        return Response(serializer.data)
+class BookListCreateView(ListCreateAPIView):
+    queryset = Books.objects.all()
+    serializer_class = BookSerializers
 
-    def post(self, request):
-        serializer = BookSerializers(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+class BookDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Books.objects.all()
+    serializer_class = BookSerializers
+
+#     def get(self, request):
+#         books = Books.objects.all()
+#         serializer = BookSerializers(books, many=True)
+#         return Response(serializer.data)
+
+#     def post(self, request):
+#         serializer = BookSerializers(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=201)
+#         return Response(serializer.errors, status=400)
 
 
-class BookDetails(APIView):
-    def get(self, request, pk):
-        try:
-            books = Books.objects.get(pk=pk)
-        except Books.DoesNotExist:
-            return Response({"error": "Book not found"}, status=404)
+# class BookDetails(APIView):
+#     def get(self, request, pk):
+#         try:
+#             books = Books.objects.get(pk=pk)
+#         except Books.DoesNotExist:
+#             return Response({"error": "Book not found"}, status=404)
 
-        serializer = BookSerializers(books)
-        return Response(serializer.data)
+#         serializer = BookSerializers(books)
+#         return Response(serializer.data)
 
-    def put(self, request, pk):
-        try:
-            books= Books.objects.get(pk=pk)
-        except Books.DoesNotExist:
-            return Response({"error": "Book not found"}, status=404)
+#     def put(self, request, pk):
+#         try:
+#             books= Books.objects.get(pk=pk)
+#         except Books.DoesNotExist:
+#             return Response({"error": "Book not found"}, status=404)
 
-        serializer = BookSerializers(books, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=200)
-        return Response(serializer.errors, status=400)
+#         serializer = BookSerializers(books, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=200)
+#         return Response(serializer.errors, status=400)
 
-    def patch(self, request, pk):
-        try:
-            books= Books.objects.get(pk=pk)
-        except Books.DoesNotExist:
-            return Response({"error": "Book not found"}, status=404)
+#     def patch(self, request, pk):
+#         try:
+#             books= Books.objects.get(pk=pk)
+#         except Books.DoesNotExist:
+#             return Response({"error": "Book not found"}, status=404)
 
-        serializer = BookSerializers(books, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=200)
-        return Response(serializer.errors, status=400)
+#         serializer = BookSerializers(books, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=200)
+#         return Response(serializer.errors, status=400)
 
-    def delete(self, request, pk):
-        try:
-            books = Books.objects.get(pk=pk)
-        except Books.DoesNotExist:
-            return Response({"errors": "Book not found"}, status=404)
-        books.delete()
-        return Response({'message': 'Book deleted successfully'})
+#     def delete(self, request, pk):
+#         try:
+#             books = Books.objects.get(pk=pk)
+#         except Books.DoesNotExist:
+#             return Response({"errors": "Book not found"}, status=404)
+#         books.delete()
+#         return Response({'message': 'Book deleted successfully'})

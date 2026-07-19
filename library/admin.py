@@ -22,6 +22,7 @@ class BooksAdmin(admin.ModelAdmin):
 
                     'total_copies',
                     'available_copies',
+                    'image',
                     )
     search_fields = ('title','author_name__name','category_name__name',)
     list_filter = (
