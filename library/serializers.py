@@ -19,6 +19,7 @@ class BookSerializers(serializers.ModelSerializer):
             "author_name",
             "total_copies",
             "available_copies",
+            "image",
         ]
 
     def validate(self, attrs):
