@@ -1,9 +1,10 @@
 # from django.http import JsonResponse
 from rest_framework.response import Response
-#from rest_framework.decorators import api_view
-from .models import  Books
-from .serializers import BookSerializers
-from rest_framework. generics  import (ListCreateAPIView, RetrieveUpdateDestroyAPIView)
+# from rest_framework.decorators import api_view
+from .models import Books, Author
+from .serializers import BookSerializers, AuthorSerializers
+from rest_framework. generics import (
+    ListCreateAPIView, RetrieveUpdateDestroyAPIView)
 
 # def Check_available(request):
 #     books = Books.objects.all()
@@ -58,9 +59,20 @@ class BookListCreateView(ListCreateAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerializers
 
+
 class BookDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerializers
+
+
+class AuthorListCreateView(ListCreateAPIView):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializers
+
+
+class AuthorDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializers
 
 #     def get(self, request):
 #         books = Books.objects.all()
