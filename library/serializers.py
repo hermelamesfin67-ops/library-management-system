@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Books, BorrowItem, Borrow
+from .models import Books, BorrowItem, Borrow, Author
 
 
 class BookSerializers(serializers.ModelSerializer):
@@ -61,4 +61,16 @@ class BorrowSerializer(serializers.ModelSerializer):
             "due_date",
             "status",
             "items",
+        ]
+
+
+class AuthorSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = [
+            "id",
+            "name",
+            "biography",
+            "book_count",
+            'image',
         ]

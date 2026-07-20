@@ -5,7 +5,10 @@ from django.contrib.auth.models import User
 
 class Author(models.Model):
     name = models.CharField(max_length=100)
-
+    biography = models.TextField(null=True, blank=True)
+    book_count = models.PositiveIntegerField(default=0)
+    image = models.ImageField(
+        upload_to='authors/', null=True, blank=True)
     def __str__(self):
         return self.name
 
@@ -25,7 +28,8 @@ class Books(models.Model):
     # user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_copies = models.PositiveIntegerField()
     available_copies = models.PositiveIntegerField(default=0)
-    image = models.ImageField(upload_to='books/', null=True, blank=True)
+    image = models.ImageField(
+        upload_to='books/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.pk:
