@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Books, BorrowItem, Borrow, Author
+from .models import Books, BorrowItem, Borrow, Author, Category
+from rest_framework.response import Response
 
 
 class BookSerializers(serializers.ModelSerializer):
@@ -45,13 +46,15 @@ class BorrowItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = BorrowItem
         fields = [
-
+            "",
             "book",
             "quantity",
         ]
 
 
 class BorrowSerializer(serializers.ModelSerializer):
+    items = BorrowItemSerializer(many=True)
+
     class Meta:
         model = Borrow
         items = BorrowItemSerializer(many=True)
@@ -63,6 +66,15 @@ class BorrowSerializer(serializers.ModelSerializer):
             "items",
         ]
 
+    def create(self, validated_data):
+        items_data = validated_data.pop("items")
+        borrow = Borrow.objects.create(**validated_data)
+
+        for item_data in items_data:
+            BorrowItem.objects.create(borrow=borrow, **item_data)
+
+        return borrow
+
 
 class AuthorSerializers(serializers.ModelSerializer):
     class Meta:
@@ -73,4 +85,22 @@ class AuthorSerializers(serializers.ModelSerializer):
             "biography",
             "book_count",
             'image',
+
+        ]
+
+        def delete(self):
+            Author.delete()
+            return Response({'message': 'Author deleted successfully'}, status=204)
+
+
+class CategorySerializers(serializers.ModelSerializer):
+    Book_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Category
+        fields = [
+            "id",
+            "name",
+            "description",
+            "Book_count",
         ]

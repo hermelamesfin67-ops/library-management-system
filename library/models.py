@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
@@ -9,13 +10,15 @@ class Author(models.Model):
     book_count = models.PositiveIntegerField(default=0)
     image = models.ImageField(
         upload_to='authors/', null=True, blank=True)
+
     def __str__(self):
         return self.name
 
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
-
+    description = models.TextField(null=True, blank=True)
+    
     def __str__(self):
         return self.name
 
@@ -28,14 +31,26 @@ class Books(models.Model):
     # user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_copies = models.PositiveIntegerField()
     available_copies = models.PositiveIntegerField(default=0)
-    image = models.ImageField(
-        upload_to='books/', null=True, blank=True)
+    image = models.ImageField(upload_to="books/", null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            #  self.available_copies = self.total_copies
-            self.slug = self.title.lower().replace(" ", "-")
+        # Delete old image when updating
+        try:
+            old = Books.objects.get(pk=self.pk)
+            if old.image and old.image != self.image:
+                if os.path.isfile(old.image.path):
+                    os.remove(old.image.path)
+        except Books.DoesNotExist:
+            pass
+
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Delete image file when model is deleted
+        if self.image and os.path.isfile(self.image.path):
+            os.remove(self.image.path)
+
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.title
