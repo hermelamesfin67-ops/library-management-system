@@ -1,8 +1,9 @@
 # from django.http import JsonResponse
 from rest_framework.response import Response
 # from rest_framework.decorators import api_view
-from .models import Books, Author
-from .serializers import BookSerializers, AuthorSerializers
+from .models import Books, Author, Borrow, BorrowItem, Category
+from .serializers import BookSerializers, AuthorSerializers, CategorySerializers, BorrowSerializer, BorrowItemSerializer
+
 from rest_framework. generics import (
     ListCreateAPIView, RetrieveUpdateDestroyAPIView)
 
@@ -74,6 +75,36 @@ class AuthorDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
 
+
+class CategoryListCreateView(ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializers
+
+
+class CategoryDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializers
+
+
+class BorrowListCreateView(ListCreateAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BorrowSerializer
+
+
+class BorrowDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Borrow.objects.all()
+    serializer_class = BorrowSerializer
+
+
+class BorrowItemListView(ListCreateAPIView):
+    queryset = BorrowItem.objects.all()
+    serializer_class = BorrowItemSerializer
+    
+
+
+class BorrowItemDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = BorrowItem.objects.all()
+    serializer_class = BorrowItemSerializer
 #     def get(self, request):
 #         books = Books.objects.all()
 #         serializer = BookSerializers(books, many=True)
