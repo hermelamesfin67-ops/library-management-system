@@ -10,12 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from datetime import timedelta
 import dj_database_url
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -62,7 +62,20 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR/'media'
 
 CORS_ALLOW_ALL_ORIGINS = True
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=12),  # Change this
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+
+    "UPDATE_LAST_LOGIN": True,
+}
 ROOT_URLCONF = 'libraryproject.urls'
 
 TEMPLATES = [

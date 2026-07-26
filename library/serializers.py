@@ -1,7 +1,20 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Books, BorrowItem, Borrow, Author, Category
 from rest_framework.response import Response
 
+from .models import Author, Books, Borrow, BorrowItem, Category
+
+
+class UserSerializers(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields=['id','username','password','email']
+        extra_kwargs={"passsword":{"write_only":True}}
+
+    def create(self, validated_data):
+        user=User.objects.create_user(**validated_data)
+        return user
+    
 
 class BookSerializers(serializers.ModelSerializer):
     author_display = serializers.CharField(
@@ -43,23 +56,30 @@ class BookSerializers(serializers.ModelSerializer):
 
 
 class BorrowItemSerializer(serializers.ModelSerializer):
+    book_title = serializers.CharField(
+        source='book.title', read_only=True)
+
     class Meta:
         model = BorrowItem
         fields = [
-            "",
             "book",
+            "borrow",
             "quantity",
+            "book_title",
         ]
 
 
 class BorrowSerializer(serializers.ModelSerializer):
     items = BorrowItemSerializer(many=True)
-
+    user_Display=serializers.CharField(source='user.username',read_only=True)
+        
+    
     class Meta:
         model = Borrow
         items = BorrowItemSerializer(many=True)
         fields = [
             "user",
+            "user_Display",
             "created_at",
             "due_date",
             "status",
