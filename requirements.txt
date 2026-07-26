@@ -10,3 +10,5 @@ pip==25.1.1
 gunicorn
 django-cors-headers==4.9.0
 pillow==12.3
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.13.0
