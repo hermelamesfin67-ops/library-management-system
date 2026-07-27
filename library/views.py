@@ -79,61 +79,61 @@ class BookListCreateView(ListCreateAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerializers
     # permission_classes = [DjangoModelPermissions]
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class BookDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerializers
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly , IsAuthenticated]
 
 
 class AuthorListCreateView(ListCreateAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class AuthorDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializers
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class CategoryDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializers
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class BorrowListCreateView(ListCreateAPIView):
     queryset = Borrow.objects.all()
     serializer_class = BorrowSerializer
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class BorrowDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Borrow.objects.all()
     serializer_class = BorrowSerializer
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class BorrowItemListView(ListCreateAPIView):
     queryset = BorrowItem.objects.all()
     serializer_class = BorrowItemSerializer
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class BorrowItemDetailView(RetrieveUpdateDestroyAPIView):
     queryset = BorrowItem.objects.all()
     serializer_class = BorrowItemSerializer
-    permission_classes = [IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 #     def get(self, request):
 #         books = Books.objects.all()

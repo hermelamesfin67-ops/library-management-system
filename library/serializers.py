@@ -8,7 +8,7 @@ from .models import Author, Books, Borrow, BorrowItem, Category
 class UserSerializers(serializers.ModelSerializer):
     class Meta:
         model=User
-        fields=['id','username','password','email',"role",]
+        fields=('id','username','password','email',)
         extra_kwargs={"passsword":{"write_only":True}}
 
     def create(self, validated_data):
