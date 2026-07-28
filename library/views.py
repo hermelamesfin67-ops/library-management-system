@@ -1,13 +1,13 @@
 # from django.http import JsonResponse
 from django.contrib.auth.models import User
-from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated,IsAdminUser
+from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView,CreateAPIView
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 # from rest_framework.decorators import api_view
 from .models import Author, Books, Borrow, BorrowItem, Category
-from .permissions import IsLibrarianOrReadOnly
+from .permissions import IsLibrarianOrReadOnly, IsLibrarian
 from .serializers import (
     AuthorSerializers,
     BookSerializers,
@@ -69,16 +69,22 @@ from .serializers import (
 #         return Response(serializer.data)
 class MyLogin(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-class UserListCreateView(ListCreateAPIView):
+class UserListView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+    permission_classes=[IsLibrarian]
+class UserCreateView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializers
+    permission_classes=[AllowAny]
+
+class UserProfileView(RetrieveUpdateDestroyAPIView):
+    serializer_class = UserSerializers
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
     
-
-
-class UserDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializers
-
 
 class BookListCreateView(ListCreateAPIView):
     queryset = Books.objects.all()
