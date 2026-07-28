@@ -1,21 +1,36 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,Group
 from rest_framework import serializers
 from rest_framework.response import Response
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Author, Books, Borrow, BorrowItem, Category
 
 
 class UserSerializers(serializers.ModelSerializer):
+    role=serializers.CharField(write_only=True)
+
     class Meta:
         model=User
-        fields=('id','username','password','email',)
-        extra_kwargs={"passsword":{"write_only":True}}
+        fields=('id','username','password','email',"role")
+        extra_kwargs={"password":{"write_only":True}}
 
     def create(self, validated_data):
+        role=validated_data.pop("role")
         user=User.objects.create_user(**validated_data)
+
+        group=Group.objects.get(name=role) 
+        user.groups.add(group)
         return user
     
-
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):   
+    def validate(self,attrs):
+        data=super().validate(attrs)
+        data["user"]={
+            "username":self.user.username,
+            "email":self.user.email,
+            "role":self.user.groups.first().name if self.user.groups.exists() else None
+            }
+        
+        return data
 class BookSerializers(serializers.ModelSerializer):
     author_display = serializers.CharField(
         source='author_name.name', read_only=True)
