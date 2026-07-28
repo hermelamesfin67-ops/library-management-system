@@ -17,6 +17,7 @@ from .views import (
     CategoryListCreateView,
     UserDetailView,
     UserListCreateView,
+    MyLogin,
 )
 
 urlpatterns = [
@@ -39,8 +40,8 @@ urlpatterns = [
 
     path("health-check/",
          lambda request: JsonResponse({"status": "ok"}), name="health-check"),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/login/", MyLogin.as_view(), name="login"),
+    path("api/refresh/", TokenRefreshView.as_view(), name="refresh"),
 ]
 
 if settings.DEBUG:

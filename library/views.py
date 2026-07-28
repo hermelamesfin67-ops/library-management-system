@@ -1,8 +1,9 @@
 # from django.http import JsonResponse
 from django.contrib.auth.models import User
 from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 # from rest_framework.decorators import api_view
 from .models import Author, Books, Borrow, BorrowItem, Category
@@ -14,6 +15,7 @@ from .serializers import (
     BorrowSerializer,
     CategorySerializers,
     UserSerializers,
+    MyTokenObtainPairSerializer,
 )
 
 # def Check_available(request):
@@ -65,9 +67,12 @@ from .serializers import (
 #         serializer = BookSerializers(5, many=True)
 
 #         return Response(serializer.data)
+class MyLogin(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 class UserListCreateView(ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+    
 
 
 class UserDetailView(RetrieveUpdateDestroyAPIView):
