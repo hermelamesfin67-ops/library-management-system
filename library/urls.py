@@ -15,15 +15,19 @@ from .views import (
     BorrowListCreateView,
     CategoryDetailView,
     CategoryListCreateView,
-    UserDetailView,
-    UserListCreateView,
+    UserProfileView,
+    UserListView,
+    UserCreateView,
+    
     MyLogin,
 )
 
 urlpatterns = [
     # path('check/', views.Check_available , name='Check_available'),
-    path("api/users/", UserListCreateView.as_view(), name="all_users"),
-    path("api/users/<int:pk>/", UserDetailView.as_view(), name="user_details"),
+    path("api/register/", UserCreateView.as_view(), name="register"),
+    path("api/users/", UserListView.as_view(), name="all_users"),
+
+    path("api/profile/", UserProfileView.as_view(), name="user_details"),
     path("api/books/", BookListCreateView.as_view(), name="all_books"),
     path("api/books/<int:pk>/", BookDetailView.as_view(), name="book_details"),
     path("api/authors/", AuthorListCreateView.as_view(), name="all_authors"),
