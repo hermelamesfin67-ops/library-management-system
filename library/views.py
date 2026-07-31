@@ -1,13 +1,13 @@
 # from django.http import JsonResponse
-from django.contrib.auth.models import User
-from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView,CreateAPIView
-from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated,AllowAny
+from django.contrib.auth  import get_user_model
+from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 # from rest_framework.decorators import api_view
 from .models import Author, Books, Borrow, BorrowItem, Category
-from .permissions import IsLibrarianOrReadOnly, IsLibrarian
+from .permissions import IsLibrarianOrReadOnly, IsLibrarian, IsSuperUser
 from .serializers import (
     AuthorSerializers,
     BookSerializers,
@@ -45,7 +45,7 @@ from .serializers import (
 #         serializer = BookSerializers(book,data=request.data)
 
 #         if serializer.is_valid():
-#             serializer.save()  # for post because created is in post
+#             serializer.save()  # fo post because created is in post
 #             return Response(serializer.data, status=201)
 #         return Response(serializer.errors, status=400)
 #     elif request.method == 'PATCH':
@@ -67,36 +67,46 @@ from .serializers import (
 #         serializer = BookSerializers(5, many=True)
 
 #         return Response(serializer.data)
+User=get_user_model()
 class MyLogin(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+
 class UserListView(ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
-    permission_classes=[IsLibrarian]
+    permission_classes = [IsAuthenticated,IsSuperUser]
+
+
 class UserCreateView(CreateAPIView):
+
     queryset = User.objects.all()
     serializer_class = UserSerializers
-    permission_classes=[AllowAny]
+    permission_classes = [IsAuthenticated, IsSuperUser]
+
 
 class UserProfileView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializers
-    permission_classes = [IsAuthenticated]
 
     def get_object(self):
         return self.request.user
-    
+    def get_permissions(self):
+        if self.request.method =="DELETE":
+            return[IsSuperUser()]
+        return[IsAuthenticated()]
 
 class BookListCreateView(ListCreateAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerializers
-    # permission_classes = [DjangoModelPermissions]
-    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
-
-
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return[IsAuthenticated(),
+                   IsLibrarian()]
+        return[AllowAny()]
 class BookDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Books.objects.all()
     serializer_class = BookSerializers
-    permission_classes = [IsLibrarianOrReadOnly , IsAuthenticated]
+    permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
 
 
 class AuthorListCreateView(ListCreateAPIView):
@@ -124,9 +134,13 @@ class CategoryDetailView(RetrieveUpdateDestroyAPIView):
 
 
 class BorrowListCreateView(ListCreateAPIView):
-    queryset = Borrow.objects.all()
     serializer_class = BorrowSerializer
     permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.role == "Librarian":
+            return Borrow.objects.all()
+        return Borrow.objects.filter(user=self.request.user)
 
 
 class BorrowDetailView(RetrieveUpdateDestroyAPIView):

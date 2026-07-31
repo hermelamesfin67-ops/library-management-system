@@ -1,9 +1,13 @@
 import os
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.conf  import settings
 # Create your models here.
+
+
+class User(AbstractUser):
+    role = models.CharField(max_length=20)
 
 
 class Author(models.Model):
@@ -20,7 +24,7 @@ class Author(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
-    
+    icon=models.ImageField(upload_to='category_icons/',null=True,blank=True)
     def __str__(self):
         return self.name
 
@@ -29,7 +33,7 @@ class Books(models.Model):
 
     title = models.CharField(max_length=100)
     author_name = models.ForeignKey(Author, on_delete=models.CASCADE)
-    category_name = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category_name = models.ForeignKey(Category, on_delete=models.CASCADE,related_name='books')
     # user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_copies = models.PositiveIntegerField()
     available_copies = models.PositiveIntegerField(default=0)
@@ -59,7 +63,7 @@ class Books(models.Model):
 
 
 class Borrow(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     STATUS_CHOICES = [
@@ -69,7 +73,7 @@ class Borrow(models.Model):
 
     ]
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="Returned")
+        max_length=20, choices=STATUS_CHOICES, default="borrowed")
 
     def __str__(self):
         return f"{self.user.username} - {self.created_at.date()}"

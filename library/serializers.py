@@ -1,18 +1,24 @@
-from django.contrib.auth.models import User,Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+
 from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Author, Books, Borrow, BorrowItem, Category
 
-
+from django.db import transaction
+from datetime import timedelta
+from django.utils import timezone
+User=get_user_model()
 class UserSerializers(serializers.ModelSerializer):
     role=serializers.CharField(write_only=True)
-
+    account_type=serializers.CharField(read_only=True)
     class Meta:
         model=User
-        fields=('id','username','password','email',"role")
+        fields=('id','username','password','email',"role","account_type")
         extra_kwargs={"password":{"write_only":True}}
-
+    
+    
     def create(self, validated_data):
         role=validated_data.pop("role")
         user=User.objects.create_user(**validated_data)
@@ -22,15 +28,25 @@ class UserSerializers(serializers.ModelSerializer):
         return user
     
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):   
+    
     def validate(self,attrs):
         data=super().validate(attrs)
         data["user"]={
+            "id":self.user.id,
             "username":self.user.username,
             "email":self.user.email,
-            "role":self.user.groups.first().name if self.user.groups.exists() else None
+            "role":self.user.groups.first().name if self.user.groups.exists() else None,
+            "account_type":(
+                "Superuser"
+                if self.user.is_superuser
+                else "Staff"
+                if self.user.is_staff
+                else self.user.role
+                   ), 
             }
-        
+    
         return data
+    
 class BookSerializers(serializers.ModelSerializer):
     author_display = serializers.CharField(
         source='author_name.name', read_only=True)
@@ -93,17 +109,21 @@ class BorrowSerializer(serializers.ModelSerializer):
         model = Borrow
         items = BorrowItemSerializer(many=True)
         fields = [
-            "user",
+            
             "user_Display",
             "created_at",
             "due_date",
             "status",
             "items",
         ]
-
+    @transaction.atomic
     def create(self, validated_data):
         items_data = validated_data.pop("items")
-        borrow = Borrow.objects.create(**validated_data)
+        borrow = Borrow.objects.create(
+            user=self.context["request"].user,
+            due_date=timezone.now()+timedelta(days=7),
+            status="borrowed",
+            **validated_data)
 
         for item_data in items_data:
             BorrowItem.objects.create(borrow=borrow, **item_data)
@@ -123,13 +143,13 @@ class AuthorSerializers(serializers.ModelSerializer):
 
         ]
 
-        def delete(self):
+    def delete(self):
             Author.delete()
             return Response({'message': 'Author deleted successfully'}, status=204)
 
 
 class CategorySerializers(serializers.ModelSerializer):
-    Book_count = serializers.IntegerField(read_only=True)
+    Book_count = serializers.IntegerField(source="books.count", read_only=True)
 
     class Meta:
         model = Category
@@ -137,5 +157,6 @@ class CategorySerializers(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "icon",
             "Book_count",
         ]
