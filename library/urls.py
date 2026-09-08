@@ -10,15 +10,14 @@ from .views import (
     BookDetailView,
     BookListCreateView,
     BorrowDetailView,
-    BorrowItemDetailView,
-    BorrowItemListView,
+    
     BorrowListCreateView,
     CategoryDetailView,
     CategoryListCreateView,
     UserProfileView,
     UserListView,
     UserCreateView,
-    
+    UserDetail,
     MyLogin,
 )
 
@@ -26,7 +25,7 @@ urlpatterns = [
     # path('check/', views.Check_available , name='Check_available'),
     path("api/register/", UserCreateView.as_view(), name="register"),
     path("api/users/", UserListView.as_view(), name="all_users"),
-
+    path("api/users/<int:pk>/", UserDetail.as_view(), name="user_details"),
     path("api/profile/", UserProfileView.as_view(), name="user_details"),
     path("api/books/", BookListCreateView.as_view(), name="all_books"),
     path("api/books/<int:pk>/", BookDetailView.as_view(), name="book_details"),
@@ -35,10 +34,7 @@ urlpatterns = [
     path("api/categories/", CategoryListCreateView.as_view(), name="all_categories"),
     path("api/borrows/", BorrowListCreateView.as_view(), name="all_borrows"),
     path("api/borrows/<int:pk>/", BorrowDetailView.as_view(), name="borrow_details"),
-    path("api/borrows/<int:pk>/items/",
-         BorrowItemListView.as_view(), name="borrow_items"),
-    path("api/borrows/<int:pk>/items/<int:item_pk>/",
-         BorrowItemDetailView.as_view(), name="borrow_item_details"),
+    
     path("api/categories/<int:pk>/",
          CategoryDetailView.as_view(), name="category_details"),
 

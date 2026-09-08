@@ -27,6 +27,7 @@ class UserSerializers(serializers.ModelSerializer):
         user.groups.add(group)
         return user
     
+    
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):   
     
     def validate(self,attrs):
@@ -98,12 +99,13 @@ class BorrowItemSerializer(serializers.ModelSerializer):
             "quantity",
             "book_title",
         ]
+        read_only_fields = ["borrow", "book_title"]
 
 
 class BorrowSerializer(serializers.ModelSerializer):
     items = BorrowItemSerializer(many=True)
     user_Display=serializers.CharField(source='user.username',read_only=True)
-        
+    due_date = serializers.DateTimeField(read_only=True)
     
     class Meta:
         model = Borrow
