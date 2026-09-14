@@ -19,6 +19,7 @@ from .views import (
     UserCreateView,
     UserDetail,
     MyLogin,
+    BorrowViewSet,
 )
 
 urlpatterns = [
@@ -37,7 +38,10 @@ urlpatterns = [
     
     path("api/categories/<int:pk>/",
          CategoryDetailView.as_view(), name="category_details"),
-
+    path("api/borrows/<int:pk>/return/",
+        BorrowViewSet.as_view({"patch": "return_book"}),
+        name="borrow-return"
+    ),
     path("health-check/",
          lambda request: JsonResponse({"status": "ok"}), name="health-check"),
     path("api/login/", MyLogin.as_view(), name="login"),

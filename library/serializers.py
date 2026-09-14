@@ -109,7 +109,6 @@ class BorrowSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Borrow
-        items = BorrowItemSerializer(many=True)
         fields = [
             
             "user_Display",
@@ -128,6 +127,19 @@ class BorrowSerializer(serializers.ModelSerializer):
             **validated_data)
 
         for item_data in items_data:
+            book=item_data("book")
+            quantity=item_data("quantity")
+            if book.available_copies < quantity:
+                raise serializers.ValidationError({
+                    "items": (
+                        f"Not enough copies of '{book.title}'. "
+                        f"Only {book.available_copies} available."
+                    )
+                })
+
+            book.available_copies -= quantity
+            book.save(update_fields=["available_copies"]) 
+
             BorrowItem.objects.create(borrow=borrow, **item_data)
 
         return borrow

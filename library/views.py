@@ -4,9 +4,10 @@ from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPI
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-
-# from rest_framework.decorators import api_view
-from .models import Author, Books, Borrow, BorrowItem, Category
+from django.db import transaction 
+from rest_framework import status , viewsets
+from rest_framework.decorators import  action
+from .models import Author, Books, Borrow, Category
 from .permissions import IsLibrarianOrReadOnly, IsLibrarian, IsSuperUser,  IsLibrarianOrStudent
 from .serializers import (
     AuthorSerializers,
@@ -91,13 +92,15 @@ class UserDetail(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
     permission_classes = [IsAuthenticated, IsSuperUser]
-    def destroy (self,request,*args,**kwargs):
-        user=self.get_object()
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
         user.delete()
         return Response(
-                {"message": "User deleted successfully"},
-                status=204
+            {"message": "User deleted successfully"},
+            status=204
         )
+
 
 class UserProfileView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializers
@@ -171,6 +174,7 @@ class AuthorDetailView(RetrieveUpdateDestroyAPIView):
             AllowAny()
         ]
 
+
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializers
@@ -205,20 +209,66 @@ class CategoryDetailView(RetrieveUpdateDestroyAPIView):
 class BorrowListCreateView(ListCreateAPIView):
     serializer_class = BorrowSerializer
     permission_classes = [IsLibrarianOrStudent]
-    
+
     def get_queryset(self):
-      if self.request.user.is_superuser:
-        return Borrow.objects.all()
+        if self.request.user.is_superuser:
+            return Borrow.objects.all()
 
-      if self.request.user.groups.filter(name="Librarian").exists():
-        return Borrow.objects.all()
+        if self.request.user.groups.filter(name="Librarian").exists():
+            return Borrow.objects.all()
 
-      return Borrow.objects.filter(user=self.request.user) 
+        return Borrow.objects.filter(user=self.request.user)
+class BorrowViewSet(viewsets.ModelViewSet):
+    permission_classes=[IsLibrarianOrReadOnly]
+    @action(
+        detail=True,
+        methods=["patch"],
+        url_path="return",
+    )
+    def return_book(self, request, pk=None):
+
+        with transaction.atomic():
+
+            borrow = Borrow.objects.select_for_update().get(pk=pk)
+            
+            # Prevent returning twice
+            if borrow.status == "returned":
+                return Response(
+                    {"detail": "This borrow has already been returned."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Return each book's copies
+            for item in borrow.items.select_related("book"):
+
+                book = item.book
+
+                book.available_copies += item.quantity
+
+                # Don't exceed total copies
+                if book.available_copies > book.total_copies:
+                    book.available_copies = book.total_copies
+
+                book.save(update_fields=["available_copies"])
+
+            # Change borrow status
+            borrow.status = "returned"
+            borrow.save(update_fields=["status"])
+
+            return Response(
+                {
+                    "detail": "Book returned successfully.",
+                    "borrow_id": borrow.id,
+                    "status": borrow.status
+                },
+                status=status.HTTP_200_OK
+            )
+
+
 class BorrowDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Borrow.objects.all()
     serializer_class = BorrowSerializer
     permission_classes = [IsLibrarianOrReadOnly, IsAuthenticated]
-
 
 
 #     def get(self, request):
