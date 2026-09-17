@@ -29,7 +29,24 @@ class DashboardView(APIView):
 
     def get(self, request):
         if not (request.user.is_superuser or request.user.groups.filter(name="Librarian").exists()):
-            return Response("You are not authorized")
+            my_borrows=Borrow.objects.filter(user=request.user)
+            my_borrowed = my_borrows.filter(
+                status="borrowed"
+            ).count()
+            my_returned = my_borrows.filter(
+                status="returned"
+            ).count()
+
+            my_overdue = my_borrows.filter(
+                status="borrowed",
+                due_date__lt=timezone.now()
+            ).count()
+
+            return Response({
+                "my_borrowed": my_borrowed,
+                "my_returned": my_returned,
+                "my_overdue": my_overdue,
+            })
         
         total_users=User.objects.all().count()
         total_books=Books.objects.all().count()
@@ -49,6 +66,24 @@ class DashboardView(APIView):
             "available_copies": available_copies,
             "borrowed": borrowed,
             "overdue": overdue,
+            "chart": [
+                {
+                    "name": "Total Copies",
+                    "value": total_copies
+                },
+                {
+                    "name": "Available",
+                    "value": available_copies
+                },
+                {
+                    "name": "Borrowed",
+                    "value": borrowed
+                },
+                {
+                    "name": "Overdue",
+                    "value": overdue
+                }
+            ]
         })
 class MyLogin(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
