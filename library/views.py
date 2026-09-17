@@ -111,22 +111,8 @@ class AuthorListCreateView(ListCreateAPIView):
 class AuthorDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
-
-    def get_permissions(self):
-        if self.request.method == "PUT":
-            return [
-                IsLibrarian()]
-        elif self.request.method == "PATCH":
-            return [
-                IsLibrarian()]
-        elif self.request.method == "DELETE":
-            return [
-                IsLibrarian()]
-
-        return [
-            AllowAny()
-        ]
-
+    permission_classes=[IsLibrarianOrReadOnly]
+    
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
