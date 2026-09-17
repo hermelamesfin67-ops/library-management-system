@@ -212,12 +212,12 @@ class BorrowListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         if self.request.user.is_superuser:
-            return Borrow.objects.all()
+            return Borrow.objects.all().order_by("-created_at")
 
         if self.request.user.groups.filter(name="Librarian").exists():
-            return Borrow.objects.all()
+            return Borrow.objects.all().order_by("-created_at")
 
-        return Borrow.objects.filter(user=self.request.user)
+        return Borrow.objects.filter(user=self.request.user).order_by("-created_at")
 
 
 class BorrowViewSet(viewsets.ModelViewSet):

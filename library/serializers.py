@@ -141,6 +141,9 @@ class BorrowSerializer(serializers.ModelSerializer):
             book.save(update_fields=["available_copies"]) 
 
             BorrowItem.objects.create(borrow=borrow, **item_data)
+        Borrow.objects.filter(
+            status="borrowed"
+        ).order_by("due_date")
 
         return borrow
 
