@@ -32,36 +32,52 @@ class Category(models.Model):
 class Books(models.Model):
 
     title = models.CharField(max_length=100)
-    author_name = models.ForeignKey(Author, on_delete=models.CASCADE)
-    category_name = models.ForeignKey(Category, on_delete=models.CASCADE,related_name='books')
-    # user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    author_name = models.ForeignKey(
+        Author,
+        on_delete=models.CASCADE
+    )
+
+    category_name = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='books'
+    )
+
     total_copies = models.PositiveIntegerField()
+
     available_copies = models.PositiveIntegerField(default=0)
-    image = models.ImageField(upload_to="books/", null=True, blank=True)
+
+    image = models.ImageField(
+        upload_to="books/",
+        null=True,
+        blank=True
+    )
 
     def save(self, *args, **kwargs):
-        # Delete old image when updating
+
+        # Delete old image when replacing it
         try:
             old = Books.objects.get(pk=self.pk)
+
             if old.image and old.image != self.image:
-                if os.path.isfile(old.image.path):
-                    os.remove(old.image.path)
+                old.image.delete(save=False)
+
         except Books.DoesNotExist:
             pass
 
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        # Delete image file when model is deleted
-        if self.image and os.path.isfile(self.image.path):
-            os.remove(self.image.path)
+
+        # Delete image from Cloudinary
+        if self.image:
+            self.image.delete(save=False)
 
         super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.title
-
-
 class Borrow(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
