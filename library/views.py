@@ -2,12 +2,12 @@
 from django.contrib.auth import get_user_model
 from rest_framework. generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, CreateAPIView
 from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated, AllowAny
-# from rest_framework.views import APIVIew
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db import transaction 
-from rest_framework import status , viewsets
-from rest_framework.decorators import  action
+from django.db import transaction
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from .models import Author, Books, Borrow, Category
 from .permissions import IsLibrarianOrReadOnly, IsLibrarian, IsSuperUser,  IsLibrarianOrStudent
 from .serializers import (
@@ -19,11 +19,37 @@ from .serializers import (
     UserSerializers,
     MyTokenObtainPairSerializer,
 )
+from django.utils import timezone
 
 User = get_user_model()
 
-# class DashboardView(APIVIew):
-#     permission_classes = [IsLibrarianOrReadOnly]
+
+class DashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not (request.user.is_superuser or request.user.groups.filter(name="Librarian").exists()):
+            return Response("You are not authorized")
+        
+        total_users=User.objects.all().count()
+        total_books=Books.objects.all().count()
+        total_copies= sum(book.total_copies for book in Books.objects.all())
+        available_copies= sum(book.available_copies for book in Books.objects.all())
+        borrowed = total_copies - available_copies
+
+        overdue = Borrow.objects.filter(
+            status="borrowed",
+            due_date__lt=timezone.now()
+        ).count()
+
+        return Response({
+            "total_users": total_users,
+            "total_books": total_books,
+            "total_copies": total_copies,
+            "available_copies": available_copies,
+            "borrowed": borrowed,
+            "overdue": overdue,
+        })
 class MyLogin(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
@@ -111,8 +137,8 @@ class AuthorListCreateView(ListCreateAPIView):
 class AuthorDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
-    permission_classes=[IsLibrarianOrReadOnly]
-    
+    permission_classes = [IsLibrarianOrReadOnly]
+
 
 class CategoryListCreateView(ListCreateAPIView):
     queryset = Category.objects.all()
@@ -157,8 +183,11 @@ class BorrowListCreateView(ListCreateAPIView):
             return Borrow.objects.all()
 
         return Borrow.objects.filter(user=self.request.user)
+
+
 class BorrowViewSet(viewsets.ModelViewSet):
-    permission_classes=[IsLibrarianOrReadOnly]
+    permission_classes = [IsLibrarianOrReadOnly]
+
     @action(
         detail=True,
         methods=["patch"],
@@ -169,7 +198,7 @@ class BorrowViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
 
             borrow = Borrow.objects.select_for_update().get(pk=pk)
-            
+
             # Prevent returning twice
             if borrow.status == "returned":
                 return Response(

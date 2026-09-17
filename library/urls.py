@@ -20,6 +20,7 @@ from .views import (
     UserDetail,
     MyLogin,
     BorrowViewSet,
+    DashboardView,
 )
 
 urlpatterns = [
@@ -46,5 +47,6 @@ urlpatterns = [
          lambda request: JsonResponse({"status": "ok"}), name="health-check"),
     path("api/login/", MyLogin.as_view(), name="login"),
     path("api/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("api/dashboard/", DashboardView.as_view(), name="dashboard"),
 ]
 
