@@ -48,6 +48,3 @@ urlpatterns = [
     path("api/refresh/", TokenRefreshView.as_view(), name="refresh"),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
