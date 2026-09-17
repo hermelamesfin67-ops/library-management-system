@@ -127,8 +127,8 @@ class BorrowSerializer(serializers.ModelSerializer):
             **validated_data)
 
         for item_data in items_data:
-            book=item_data("book")
-            quantity=item_data("quantity")
+            book=item_data["book"]
+            quantity=item_data["quantity"]
             if book.available_copies < quantity:
                 raise serializers.ValidationError({
                     "items": (
